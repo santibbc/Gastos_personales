@@ -25,12 +25,13 @@ namespace lib_repositorios.Implementaciones
 
             if (entidad!.IdIngreso == 0)
                 throw new Exception("lbNoSeGuardo");
- 
-            //OPERACIONES
+
+            // no permitir borrar ingresos del mes actual
+            if (entidad.Fecha.Month == DateTime.Now.Month && entidad.Fecha.Year == DateTime.Now.Year)
+                throw new Exception("No se pueden borrar ingresos registrados en el mes actual.");
+
             entidad._Usuario = null;
             entidad._Cuenta = null;
-
-
 
             this.IConexion!.Ingresos!.Remove(entidad);
             this.IConexion.SaveChanges();
@@ -45,7 +46,18 @@ namespace lib_repositorios.Implementaciones
             if (entidad.IdIngreso != 0)
                 throw new Exception("lbYaSeGuardo");
 
-            //OPERACIONES
+            // monto es obligatorio y mayor a 0
+            if (entidad.Monto <= 0)
+                throw new Exception("El monto del ingreso debe ser mayor a 0.");
+
+            // fuente es obligatoria
+            if (string.IsNullOrWhiteSpace(entidad.Fuente))
+                throw new Exception("Debe especificar la fuente del ingreso.");
+
+            // no puede ser en el futuro
+            if (entidad.Fecha > DateTime.Now)
+                throw new Exception("La fecha del ingreso no puede ser en el futuro.");
+
             entidad._Usuario = null;
             entidad._Cuenta = null;
 
@@ -62,7 +74,17 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdIngreso == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // no permitir cambiar la fuente de un ingreso ya registrado
+            var existente = this.IConexion!.Ingresos!.AsNoTracking()
+                .FirstOrDefault(i => i.IdIngreso == entidad.IdIngreso);
+
+            if (existente != null && existente.Fuente != entidad.Fuente)
+                throw new Exception("No se puede cambiar la fuente de un ingreso ya registrado.");
+
+            // no permitir modificar ingresos con fecha en el futuro
+            if (entidad.Monto < 0)
+                throw new Exception("El monto del ingreso no puede ser negativo.");
+
             entidad._Usuario = null;
             entidad._Cuenta = null;
 
@@ -74,7 +96,11 @@ namespace lib_repositorios.Implementaciones
 
         public List<Ingresos> Listar()
         {
-            throw new NotImplementedException();
+            // listar los últimos 50 ingresos ordenados por fecha descendente
+            return this.IConexion!.Ingresos!
+                .OrderByDescending(i => i.Fecha)
+                .Take(50)
+                .ToList();
         }
     }
 }

@@ -26,10 +26,11 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdCuenta == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // no se puede borrar una cuenta con saldo distinto de cero
+            if (entidad.SaldoInicial != 0)
+                throw new Exception("No se puede eliminar una cuenta con saldo distinto de cero.");
+
             entidad._Usuario = null;
-
-
 
             this.IConexion!.CuentasBancarias!.Remove(entidad);
             this.IConexion.SaveChanges();
@@ -44,7 +45,20 @@ namespace lib_repositorios.Implementaciones
             if (entidad.IdCuenta != 0)
                 throw new Exception("lbYaSeGuardo");
 
-            //OPERACIONES
+            // validar campos obligatorios
+            if (string.IsNullOrWhiteSpace(entidad.Banco))
+                throw new Exception("El nombre del banco es obligatorio.");
+
+            if (string.IsNullOrWhiteSpace(entidad.NumeroCuenta))
+                throw new Exception("El número de cuenta es obligatorio.");
+
+            // no permitir saldo inicial negativo
+            bool existe = this.IConexion!.CuentasBancarias!
+                .Any(c => c.NumeroCuenta == entidad.NumeroCuenta);
+
+            if (existe)
+                throw new Exception($"Ya existe una cuenta registrada con el número {entidad.NumeroCuenta}.");
+
             entidad._Usuario = null;
 
             this.IConexion!.CuentasBancarias!.Add(entidad);
@@ -60,7 +74,10 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdCuenta == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // el saldo inicial no puede ser negativo
+            if (entidad.SaldoInicial < 0)
+                throw new Exception("El saldo inicial no puede ser negativo.");
+
             entidad._Usuario = null;
 
             var entry = this.IConexion!.Entry<CuentasBancarias>(entidad);
@@ -71,7 +88,11 @@ namespace lib_repositorios.Implementaciones
 
         public List<CuentasBancarias> Listar()
         {
-            throw new NotImplementedException();
+            // listar ordenado por banco
+            return this.IConexion!.CuentasBancarias!
+                .OrderBy(c => c.Banco)
+                .ToList();
         }
     }
 }
+

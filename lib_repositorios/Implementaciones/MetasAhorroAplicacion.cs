@@ -26,9 +26,11 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdMeta == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
-            entidad._Usuario = null;
+            // no se pueden borrar metas activas
+            if (entidad.Estado != null && entidad.Estado.ToLower() == "activa")
+                throw new Exception("No se puede eliminar una meta activa.");
 
+            entidad._Usuario = null;
 
             this.IConexion!.MetasAhorro!.Remove(entidad);
             this.IConexion.SaveChanges();
@@ -43,7 +45,21 @@ namespace lib_repositorios.Implementaciones
             if (entidad.IdMeta != 0)
                 throw new Exception("lbYaSeGuardo");
 
-            //OPERACIONES
+            // nombre y monto objetivo son obligatorios
+            if (string.IsNullOrWhiteSpace(entidad.Nombre))
+                throw new Exception("Debe asignar un nombre a la meta de ahorro.");
+
+            if (entidad.MontoObjetivo <= 0)
+                throw new Exception("El monto objetivo debe ser mayor a cero.");
+
+            // la fecha límite debe ser futura
+            if (entidad.FechaLimite <= DateTime.Now)
+                throw new Exception("La fecha límite de la meta debe ser mayor a la fecha actual.");
+
+            // si no se asigna estado, lo dejamos como "Activa"
+            if (string.IsNullOrWhiteSpace(entidad.Estado))
+                entidad.Estado = "Activa";
+
             entidad._Usuario = null;
 
             this.IConexion!.MetasAhorro!.Add(entidad);
@@ -59,7 +75,14 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdMeta == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // no permitir cambiar el nombre a vacío
+            if (entidad.MontoObjetivo < 0)
+                throw new Exception("El monto objetivo no puede ser negativo.");
+
+            //no permitir cambiar la fecha límite a una pasada
+            if (entidad.FechaLimite < DateTime.Now)
+                throw new Exception("La fecha límite no puede estar en el pasado.");
+
             entidad._Usuario = null;
 
             var entry = this.IConexion!.Entry<MetasAhorro>(entidad);
@@ -70,7 +93,12 @@ namespace lib_repositorios.Implementaciones
 
         public List<MetasAhorro> Listar()
         {
-            throw new NotImplementedException();
+            // listar solo las metas activas ordenadas por fecha límite ascendente
+            return this.IConexion!.MetasAhorro!
+                .Where(m => m.Estado == "Activa")
+                .OrderBy(m => m.FechaLimite)
+                .ToList();
         }
     }
 }
+

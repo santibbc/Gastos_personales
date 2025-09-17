@@ -26,11 +26,12 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdSuscripcion == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // no borrar suscripciones activas
+            if (entidad.FechaRenovacion > DateTime.Now)
+                throw new Exception("No se puede eliminar una suscripción activa.");
+
             entidad._Usuario = null;
             entidad._Proveedor = null;
-
-
 
             this.IConexion!.Suscripciones!.Remove(entidad);
             this.IConexion.SaveChanges();
@@ -45,7 +46,13 @@ namespace lib_repositorios.Implementaciones
             if (entidad.IdSuscripcion != 0)
                 throw new Exception("lbYaSeGuardo");
 
-            //OPERACIONES
+            // monto mensual debe ser mayor a 0
+            if (entidad.MontoMensual <= 0)
+                throw new Exception("El monto mensual debe ser mayor a 0.");
+
+            if (entidad.FechaInicio >= entidad.FechaRenovacion)
+                throw new Exception("La fecha de inicio debe ser menor a la fecha de renovación.");
+
             entidad._Usuario = null;
             entidad._Proveedor = null;
 
@@ -62,7 +69,13 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdSuscripcion == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // monto mensual debe ser positivo
+            if (entidad.MontoMensual <= 0)
+                throw new Exception("El monto mensual debe ser mayor a 0.");
+
+            if (entidad.FechaInicio >= entidad.FechaRenovacion)
+                throw new Exception("La fecha de inicio debe ser menor a la fecha de renovación.");
+
             entidad._Usuario = null;
             entidad._Proveedor = null;
 
@@ -74,7 +87,12 @@ namespace lib_repositorios.Implementaciones
 
         public List<Suscripciones> Listar()
         {
-            throw new NotImplementedException();
+            // listamos solo las suscripciones activas (con fecha de renovación futura)
+            return this.IConexion!.Suscripciones!
+                .Where(s => s.FechaRenovacion >= DateTime.Now)
+                .OrderBy(s => s.FechaRenovacion)
+                .ToList();
         }
     }
 }
+

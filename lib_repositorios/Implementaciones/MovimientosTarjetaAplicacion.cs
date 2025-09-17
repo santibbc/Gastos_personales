@@ -26,10 +26,11 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdMovimiento == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // no borrar movimientos con más de 6 meses de antigüedad
+            if (entidad.Fecha < DateTime.Now.AddMonths(-6))
+                throw new Exception("No se pueden borrar movimientos con más de 6 meses de antigüedad.");
+
             entidad._Tarjeta = null;
-
-
 
             this.IConexion!.MovimientosTarjeta!.Remove(entidad);
             this.IConexion.SaveChanges();
@@ -44,7 +45,18 @@ namespace lib_repositorios.Implementaciones
             if (entidad.IdMovimiento != 0)
                 throw new Exception("lbYaSeGuardo");
 
-            //OPERACIONES
+            // validar que la tarjeta exista
+            if (entidad.Monto == 0)
+                throw new Exception("El monto del movimiento debe ser distinto de cero.");
+
+            // descripción no puede ser vacía
+            if (string.IsNullOrWhiteSpace(entidad.Descripcion))
+                throw new Exception("Debe ingresar una descripción para el movimiento.");
+
+            // fecha no puede ser futura
+            if (entidad.Fecha > DateTime.Now)
+                throw new Exception("La fecha del movimiento no puede ser en el futuro.");
+
             entidad._Tarjeta = null;
 
             this.IConexion!.MovimientosTarjeta!.Add(entidad);
@@ -60,7 +72,17 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdMovimiento == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // no permitir monto negativo
+            if (entidad.Monto < 0)
+                throw new Exception("El monto del movimiento no puede ser negativo.");
+
+            // no permitir cambiar la descripción a vacío
+            var existente = this.IConexion!.MovimientosTarjeta!.AsNoTracking()
+                .FirstOrDefault(m => m.IdMovimiento == entidad.IdMovimiento);
+
+            if (existente != null && existente.Fecha != entidad.Fecha)
+                throw new Exception("No se puede modificar la fecha del movimiento.");
+
             entidad._Tarjeta = null;
 
             var entry = this.IConexion!.Entry<MovimientosTarjeta>(entidad);
@@ -71,7 +93,12 @@ namespace lib_repositorios.Implementaciones
 
         public List<MovimientosTarjeta> Listar()
         {
-            throw new NotImplementedException();
+            // listar los 100 movimientos más recientes
+            return this.IConexion!.MovimientosTarjeta!
+                .OrderByDescending(m => m.Fecha)
+                .Take(100)
+                .ToList();
         }
     }
 }
+

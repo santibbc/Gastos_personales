@@ -26,7 +26,9 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdProveedor == 0)
                 throw new Exception("lbNoSeGuardo");
 
-
+            // no se pueden borrar proveedores con deudas o servicios activos
+            if (string.IsNullOrWhiteSpace(entidad.Nombre))
+                throw new Exception("No se puede eliminar un proveedor sin nombre.");
 
             this.IConexion!.ProveedoresServicios!.Remove(entidad);
             this.IConexion.SaveChanges();
@@ -41,6 +43,16 @@ namespace lib_repositorios.Implementaciones
             if (entidad.IdProveedor != 0)
                 throw new Exception("lbYaSeGuardo");
 
+            // nombre y categoría son obligatorios
+            if (string.IsNullOrWhiteSpace(entidad.Nombre))
+                throw new Exception("El proveedor debe tener un nombre.");
+
+            if (string.IsNullOrWhiteSpace(entidad.Categoria))
+                throw new Exception("El proveedor debe tener una categoría.");
+
+            if (!string.IsNullOrWhiteSpace(entidad.Contacto) && entidad.Contacto.Length < 5)
+                throw new Exception("El contacto del proveedor debe tener al menos 5 caracteres.");
+
             this.IConexion!.ProveedoresServicios!.Add(entidad);
             this.IConexion.SaveChanges();
             return entidad;
@@ -54,6 +66,13 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdProveedor == 0)
                 throw new Exception("lbNoSeGuardo");
 
+            // propiedades obligatorias
+            if (string.IsNullOrWhiteSpace(entidad.Nombre))
+                throw new Exception("El proveedor debe tener un nombre válido.");
+
+            if (string.IsNullOrWhiteSpace(entidad.Categoria))
+                throw new Exception("El proveedor debe tener una categoría válida.");
+
             var entry = this.IConexion!.Entry<ProveedoresServicios>(entidad);
             entry.State = EntityState.Modified;
             this.IConexion.SaveChanges();
@@ -62,7 +81,11 @@ namespace lib_repositorios.Implementaciones
 
         public List<ProveedoresServicios> Listar()
         {
-            throw new NotImplementedException();
+            // nombrar los proveedores en orden alfabético
+            return this.IConexion!.ProveedoresServicios!
+                .OrderBy(p => p.Nombre)
+                .ToList();
         }
     }
 }
+

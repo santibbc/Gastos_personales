@@ -26,11 +26,12 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdPresupuesto == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // no borrar presupuestos activos
+            if (entidad.FechaFin >= DateTime.Now)
+                throw new Exception("No se pueden borrar presupuestos activos.");
+
             entidad._Usuario = null;
             entidad._Categoria = null;
-
-
 
             this.IConexion!.Presupuestos!.Remove(entidad);
             this.IConexion.SaveChanges();
@@ -44,11 +45,16 @@ namespace lib_repositorios.Implementaciones
 
             if (entidad.IdPresupuesto != 0)
                 throw new Exception("lbYaSeGuardo");
- 
-            //OPERACIONES
+
+            // monto asignado, fecha inicio y fecha fin son obligatorios
+            if (entidad.MontoAsignado <= 0)
+                throw new Exception("El monto asignado del presupuesto debe ser mayor a 0.");
+
+            if (entidad.FechaInicio >= entidad.FechaFin)
+                throw new Exception("La fecha de inicio debe ser menor a la fecha de fin.");
+
             entidad._Usuario = null;
             entidad._Categoria = null;
-
 
             this.IConexion!.Presupuestos!.Add(entidad);
             this.IConexion.SaveChanges();
@@ -63,7 +69,13 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdPresupuesto == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // monto asignado, fecha inicio y fecha fin son obligatorios
+            if (entidad.MontoAsignado <= 0)
+                throw new Exception("El monto asignado del presupuesto debe ser mayor a 0.");
+
+            if (entidad.FechaInicio >= entidad.FechaFin)
+                throw new Exception("La fecha de inicio debe ser menor a la fecha de fin.");
+
             entidad._Usuario = null;
             entidad._Categoria = null;
 
@@ -76,7 +88,12 @@ namespace lib_repositorios.Implementaciones
 
         public List<Presupuestos> Listar()
         {
-            throw new NotImplementedException();
+            // mostrar solo los presupuestos activos ordenados por fecha de inicio ascendente
+            return this.IConexion!.Presupuestos!
+                .Where(p => p.FechaFin >= DateTime.Now)
+                .OrderBy(p => p.FechaInicio)
+                .ToList();
         }
     }
 }
+

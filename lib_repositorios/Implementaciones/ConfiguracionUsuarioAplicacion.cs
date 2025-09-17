@@ -25,11 +25,12 @@ namespace lib_repositorios.Implementaciones
 
             if (entidad!.IdConfig == 0)
                 throw new Exception("lbNoSeGuardo");
- 
-            //OPERACIONES
+
+            // no se pueden borras las configuraciones importantes
+            if (entidad.MonedaPreferida != null && entidad.MonedaPreferida.ToUpper() == "USD")
+                throw new Exception("No se puede eliminar la configuración con moneda por defecto USD.");
+
             entidad._Usuario = null;
-
-
 
             this.IConexion!.ConfiguracionUsuario!.Remove(entidad);
             this.IConexion.SaveChanges();
@@ -44,7 +45,17 @@ namespace lib_repositorios.Implementaciones
             if (entidad.IdConfig != 0)
                 throw new Exception("lbYaSeGuardo");
 
-            //OPERACIONES
+            // moneda preferida es obligatoria
+            if (string.IsNullOrWhiteSpace(entidad.MonedaPreferida))
+                throw new Exception("Debe definir una moneda preferida.");
+
+            // no pueden haber duplicados por usuario
+            bool existe = this.IConexion!.ConfiguracionUsuario!
+                .Any(c => c.IdUsuario == entidad.IdUsuario);
+
+            if (existe)
+                throw new Exception("Ya existe una configuración para este usuario.");
+
             entidad._Usuario = null;
 
             this.IConexion!.ConfiguracionUsuario!.Add(entidad);
@@ -60,7 +71,10 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdConfig == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // alerta debe ser mayor que 0 si se define
+            if (entidad.LimiteAlertas.HasValue && entidad.LimiteAlertas <= 0)
+                throw new Exception("El límite de alertas debe ser mayor que 0.");
+
             entidad._Usuario = null;
 
             var entry = this.IConexion!.Entry<ConfiguracionUsuario>(entidad);
@@ -71,7 +85,12 @@ namespace lib_repositorios.Implementaciones
 
         public List<ConfiguracionUsuario> Listar()
         {
-            throw new NotImplementedException();
+            // devolver ordenado por IdUsuario
+            return this.IConexion!.ConfiguracionUsuario!
+                .Where(c => c.Notificaciones == true)
+                .OrderBy(c => c.IdUsuario)
+                .ToList();
         }
     }
 }
+

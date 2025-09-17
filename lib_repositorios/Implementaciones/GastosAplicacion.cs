@@ -25,15 +25,14 @@ namespace lib_repositorios.Implementaciones
 
             if (entidad!.IdGasto == 0)
                 throw new Exception("lbNoSeGuardo");
-            
-            
-            //OPERACIONES
+
+            // no permitir borrar gastos programados en el futuro
+            if (entidad.Fecha > DateTime.Now)
+                throw new Exception("No se pueden borrar gastos programados en el futuro.");
+
             entidad._Usuario = null;
             entidad._Categoria = null;
             entidad._Cuenta = null;
-
-
-
 
             this.IConexion!.Gastos!.Remove(entidad);
             this.IConexion.SaveChanges();
@@ -48,7 +47,18 @@ namespace lib_repositorios.Implementaciones
             if (entidad.IdGasto != 0)
                 throw new Exception("lbYaSeGuardo");
 
-            //OPERACIONES
+            // validar campos obligatorios
+            if (entidad.Monto <= 0)
+                throw new Exception("El monto del gasto debe ser mayor a 0.");
+
+            // la descripción es obligatoria si el monto es mayor a 500
+            if (entidad.Monto > 500 && string.IsNullOrWhiteSpace(entidad.Descripcion))
+                throw new Exception("Debe especificar una descripción para gastos mayores a 500.");
+
+            //la fecha no puede ser en el futuro
+            if (entidad.Fecha > DateTime.Now)
+                throw new Exception("La fecha del gasto no puede ser en el futuro.");
+
             entidad._Usuario = null;
             entidad._Categoria = null;
             entidad._Cuenta = null;
@@ -66,7 +76,14 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdGasto == 0)
                 throw new Exception("lbNoSeGuardo");
 
-            //OPERACIONES
+            // no permitir modificar gastos con fecha en el futuro
+            if (entidad.Fecha < DateTime.Now.AddDays(-30))
+                throw new Exception("No se pueden modificar gastos registrados hace más de 30 días.");
+
+            // monto no puede ser negativo
+            if (entidad.Monto < 0)
+                throw new Exception("El monto del gasto no puede ser negativo.");
+
             entidad._Usuario = null;
             entidad._Categoria = null;
             entidad._Cuenta = null;
@@ -79,7 +96,12 @@ namespace lib_repositorios.Implementaciones
 
         public List<Gastos> Listar()
         {
-            throw new NotImplementedException();
+            // listar los últimos 100 gastos ordenados por fecha descendente
+            return this.IConexion!.Gastos!
+                .OrderByDescending(g => g.Fecha)
+                .Take(100)
+                .ToList();
         }
     }
 }
+

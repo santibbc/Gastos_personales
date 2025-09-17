@@ -27,7 +27,9 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdCategoria == 0)
                 throw new Exception("lbNoSeGuardo");
 
-
+            // no se puede borrar la categoría base "Otros"
+            if (entidad.Nombre != null && entidad.Nombre.ToLower() == "otros")
+                throw new Exception("No se puede eliminar la categoría base 'Otros'.");
 
             this.IConexion!.CategoriasGasto!.Remove(entidad);
             this.IConexion.SaveChanges();
@@ -42,6 +44,17 @@ namespace lib_repositorios.Implementaciones
             if (entidad.IdCategoria != 0)
                 throw new Exception("lbYaSeGuardo");
 
+            // el nombre es obligatorio
+            if (string.IsNullOrWhiteSpace(entidad.Nombre))
+                throw new Exception("El nombre de la categoría es obligatorio.");
+
+            // no pueden haber duplicaaados
+            bool existe = this.IConexion!.CategoriasGasto!
+                .Any(c => c.Nombre!.ToLower() == entidad.Nombre!.ToLower());
+
+            if (existe)
+                throw new Exception($"Ya existe una categoría con el nombre '{entidad.Nombre}'.");
+
             this.IConexion!.CategoriasGasto!.Add(entidad);
             this.IConexion.SaveChanges();
             return entidad;
@@ -55,6 +68,10 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdCategoria == 0)
                 throw new Exception("lbNoSeGuardo");
 
+            // el nombre es obligatorio
+            if (string.IsNullOrWhiteSpace(entidad.Nombre))
+                throw new Exception("El nombre de la categoría es obligatorio.");
+
             var entry = this.IConexion!.Entry<CategoriasGasto>(entidad);
             entry.State = EntityState.Modified;
             this.IConexion.SaveChanges();
@@ -63,7 +80,10 @@ namespace lib_repositorios.Implementaciones
 
         public List<CategoriasGasto> Listar()
         {
-            throw new NotImplementedException();
+            // listar categorias activas
+            return this.IConexion!.CategoriasGasto!
+                .OrderBy(c => c.Nombre)
+                .ToList();
         }
     }
 }
