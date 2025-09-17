@@ -5,4 +5,4 @@
 dotnet new console -n Nombre - ASP.NET Core Web API - No usar: configurar Https - Use OpenAPI # Swagger - Secrets: Click derecho en el proyecto->Manage User Secret - ASP.NET Core Web App (Razor Pages) - No usar: configurar Https 
 - Class Library - MSTest Test Project 
 # Migration - View -> Other windows -> Package Manager Console - Seleccionar el proyecto que contenga la conexion y ejecutar - PM> Add-Migration migration1 
-# Publicar pagina local - Folder | Carpeta - bin\Release\publish\
+# Publicar pagina local - Folder | Carpeta - bin\Release\publish\ 
