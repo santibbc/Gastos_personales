@@ -83,8 +83,6 @@ namespace lib_repositorios.Implementaciones
             var existente = this.IConexion!.Deudas!.AsNoTracking()
                 .FirstOrDefault(d => d.IdDeuda == entidad.IdDeuda);
 
-            if (existente != null && existente.Acreedor != entidad.Acreedor)
-                throw new Exception("No está permitido cambiar el acreedor de la deuda.");
 
             entidad._Usuario = null;
 
