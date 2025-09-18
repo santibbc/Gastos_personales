@@ -33,11 +33,11 @@ namespace ut_presentac_imp.Repositorios
         {
             entidad = new CuentasBancarias
             {
-                IdUsuario = 1, // usuario existente
+                IdUsuario = 1, 
                 Banco = "Banco Prueba",
                 NumeroCuenta = $"TEST-{Guid.NewGuid().ToString().Substring(0, 8)}",
                 TipoCuenta = "Ahorros",
-                SaldoInicial = 0, // ⚠️ Debe ser 0 para poder borrar después
+                SaldoInicial = 0, 
                 Moneda = "COP"
             };
 
@@ -60,8 +60,7 @@ namespace ut_presentac_imp.Repositorios
 
         public bool Borrar()
         {
-            // ⚠️ Como la cuenta se creó con SaldoInicial = 0,
-            // cumple la regla de negocio y sí puede borrarse.
+           
             app!.Borrar(entidad);
             return true;
         }
