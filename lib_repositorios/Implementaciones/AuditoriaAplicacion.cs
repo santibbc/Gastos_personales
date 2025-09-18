@@ -26,7 +26,9 @@ namespace lib_repositorios.Implementaciones
             if (entidad!.IdAuditoria == 0)
                 throw new Exception("lbNoSeGuardo");
 
-
+            // no se pueden borrar auditorías recientes
+            if (entidad.Fecha > DateTime.Now.AddDays(-1))
+                throw new Exception("No se pueden borrar registros de auditoría recientes.");
 
 
             entidad._Usuario = null;
